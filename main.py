@@ -529,8 +529,7 @@ async def create_request(token: str, username: str = Form(), type_request: str =
             username = decodeJSON["username"]
             user = get_user(db, username)
 
-            
-            # Tiếp tục code phần sau
+            # Logic tạo yêu cầu
         except:
             return "Đăng nhập bị sai"
     else:
