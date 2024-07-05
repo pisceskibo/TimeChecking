@@ -549,13 +549,12 @@ async def create_request(token: str, type_request: str = Form(), note: str = For
                     models.Requirement.username == username, 
                     models.Requirement.type_requirement == type_request,
                     models.Requirement.deleted_flag == False).all()
-                
-                
-                length_request = len(search_type)
+
+                get_stt = search_type[-1].stt_this_type
 
                 new_request = models.Requirement(username=username, type_requirement=type_request, 
                                                  inserted_at=insert_at, deleted_at=None, deleted_flag=False, 
-                                                 note_requirement=note, stt_this_type=length_request+1)
+                                                 note_requirement=note, stt_this_type=get_stt+1)
                 # return new_request
                 db.add(new_request)
                 db.commit()
