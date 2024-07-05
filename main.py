@@ -614,6 +614,7 @@ async def show_all_request(token: str, search_user: str = Form(), db: Session = 
             username = decodeJSON["username"]
             user = get_user(db, username)
 
+
             if user.role == 0:
                 if search_user == username:
                     search_request_user = db.query(models.Requirement).filter(models.Requirement.username == username, models.Requirement.deleted_flag == False).all()
@@ -638,7 +639,8 @@ async def show_all_request(token: str, search_user: str = Form(), db: Session = 
                             models.User.manager_by == username).all()
                         return search_request_user
             else:
-                search_request_user = db.query(models.Requirement).filter(models.Requirement.username == search_request_user, models.Requirement.deleted_flag == False).all()
+    
+                search_request_user = db.query(models.Requirement).filter(models.Requirement.username == search_user, models.Requirement.deleted_flag == False).all()
                 return search_request_user
 
         except:
