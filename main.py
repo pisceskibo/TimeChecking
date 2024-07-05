@@ -550,7 +550,10 @@ async def create_request(token: str, type_request: str = Form(), note: str = For
                     models.Requirement.type_requirement == type_request,
                     models.Requirement.deleted_flag == False).all()
 
-                get_stt = search_type[-1].stt_this_type
+                if len(search_type) != 0:
+                    get_stt = search_type[-1].stt_this_type
+                else:
+                    get_stt = 0
 
                 new_request = models.Requirement(username=username, type_requirement=type_request, 
                                                  inserted_at=insert_at, deleted_at=None, deleted_flag=False, 
