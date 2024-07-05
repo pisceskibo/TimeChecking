@@ -558,7 +558,7 @@ async def create_request(token: str, type_request: str = Form(), note: str = For
                 new_request = models.Requirement(username=username, type_requirement=type_request, 
                                                  inserted_at=insert_at, deleted_at=None, deleted_flag=False, 
                                                  note_requirement=note, stt_this_type=get_stt+1)
-                # return new_request
+
                 db.add(new_request)
                 db.commit()
                 db.refresh(new_request)
@@ -649,3 +649,4 @@ async def show_all_request(token: str, search_user: str = Form(), db: Session = 
             return "Đăng nhập bị sai"
     else:
         return "Chưa đăng nhập tài khoản"
+    
