@@ -45,6 +45,8 @@ class Requirement(Base):
     inserted_at = Column(DateTime, index=True)
     deleted_at = Column(DateTime, index=True)
     deleted_flag = Column(Boolean, index=True, comment="Xóa yêu cầu")
+    note_requirement = Column(String(100), index=True, comment="Ghi chú cho yêu cầu")
+    stt_this_type = Column(Integer, index=True, comment="Số thứ tự cho loại yêu cầu này")
 
     # Relationship to user
     user = relationship("User", back_populates="requirements")

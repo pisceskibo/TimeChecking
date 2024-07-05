@@ -522,15 +522,77 @@ async def delete_type(token: str, id_type: str = Form(), db: Session = Depends(m
 ## 5. DANH SÁCH CÁC YÊU CẦU
 # Tạo yêu cầu
 @app.post("/users/create_request")
-async def create_request(token: str, username: str = Form(), type_request: str = Form(), db: Session = Depends(models.get_db)):
+async def create_request(token: str, type_request: str = Form(), note: str = Form(), db: Session = Depends(models.get_db)):
     if token != "":
         try:
             decodeJSON = jwt.decode(token, "secret", algorithms=["HS256"])
             username = decodeJSON["username"]
-            user = get_user(db, username)
 
-            # Logic tạo yêu cầu
+            # Kiểm tra xem có thể loại yêu cầu này không
+            type_requested = db.query(models.TypeRequest).filter(models.TypeRequest.type_id == type_request, models.TypeRequest.deleted_flag == False).first()
+            
+            if type_requested:
+                insert_at = datetime.now()
+
+                # Lọc số lượng loại yêu cầu này
+                search_type = db.query(models.Requirement).filter(
+                    models.Requirement.username == username, 
+                    models.Requirement.type_requirement == type_request,
+                    models.Requirement.deleted_flag == False).all()
+                
+                
+                length_request = len(search_type)
+
+                new_request = models.Requirement(username=username, type_requirement=type_request, 
+                                                 inserted_at=insert_at, deleted_at=None, deleted_flag=False, 
+                                                 note_requirement=note, stt_this_type=length_request+1)
+                # return new_request
+                db.add(new_request)
+                db.commit()
+                db.refresh(new_request)
+
+                return f"{username} đã tạo thành công yêu cầu {new_request.type_requirement}"
+            else:
+                return "Không có loại yêu cầu này"
         except:
             return "Đăng nhập bị sai"
     else:
         return "Chưa đăng nhập tài khoản"
+
+
+# Xóa yêu cầu
+@app.delete("/users/delete_request")
+async def delete_request(token: str, type_request: str = Form(), choice_stt: int = Form(), db: Session = Depends(models.get_db)):
+    if token != "":
+        try:
+            decodeJSON = jwt.decode(token, "secret", algorithms=["HS256"])
+            username = decodeJSON["username"]
+
+            # Kiểm tra xem có thể loại yêu cầu này không
+            type_requested = db.query(models.TypeRequest).filter(models.TypeRequest.type_id == type_request, models.TypeRequest.deleted_flag == False).all()
+            if type_requested:
+                this_all_request_for_type = db.query(models.Requirement).filter(models.Requirement.type_requirement == type_request, models.Requirement.deleted_flag == False,
+                                                                                models.Requirement.username == username).all()
+
+                try:
+                    this_request = this_all_request_for_type[choice_stt-1]
+
+                    this_request.deleted_at = datetime.now()
+                    this_request.deleted_flag = True
+
+                    db.commit()
+                    db.refresh(this_request)
+
+                    return f"{username} đã xóa yêu cầu {this_request}"
+                except:
+                    return "Không có yêu cầu mà bạn chọn"
+            else:
+                return f"{username} chưa tạo yêu cầu loại này"
+        
+        except:
+            return "Đăng nhập bị sai"
+    else:
+        return "Chưa đăng nhập tài khoản"
+    
+
+# Xem lịch sử yêu cầu
