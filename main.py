@@ -364,11 +364,20 @@ async def get_allcheck_month(token: str, user_search: str = Form(), time_search:
                     year_searching = int(searching[1])
                     month_searching = int(searching[0])
 
-                    all_check_status = db.query(models.TimeCheck).outerjoin(models.User).filter(
-                            models.TimeCheck.username == user_search, models.User.role == 0, models.User.delete_flag == False,
-                            extract('year', models.TimeCheck.check_in) == year_searching,
-                            extract('month', models.TimeCheck.check_in) == month_searching).all()
+                    if user_search != username:
+                        all_check_status = db.query(models.TimeCheck).outerjoin(models.User).filter(
+                                models.TimeCheck.username == user_search, 
+                                models.User.role == 0, models.User.delete_flag == False, models.User.manager_by == username,
+                                extract('year', models.TimeCheck.check_in) == year_searching,
+                                extract('month', models.TimeCheck.check_in) == month_searching).all()
+                    else:
+                        all_check_status = db.query(models.TimeCheck).outerjoin(models.User).filter(
+                                models.TimeCheck.username == username,
+                                extract('year', models.TimeCheck.check_in) == year_searching,
+                                extract('month', models.TimeCheck.check_in) == month_searching).all()
+                        
                     return all_check_status
+
                 except:
                     # Lịch sử chấm công từ trước đến giờ
                     all_check_status = db.query(models.TimeCheck).filter(models.TimeCheck.username == user_search).all()
@@ -379,12 +388,13 @@ async def get_allcheck_month(token: str, user_search: str = Form(), time_search:
                     year_searching = int(searching[1])
                     month_searching = int(searching[0])
 
-                    user_search = username
-
-                    all_check_status = db.query(models.TimeCheck).filter(models.TimeCheck.username == user_search,
-                            extract('year', models.TimeCheck.check_in) == year_searching,
-                            extract('month', models.TimeCheck.check_in) == month_searching).all()
-                    return all_check_status
+                    if user_search == username:
+                        all_check_status = db.query(models.TimeCheck).filter(models.TimeCheck.username == username,
+                                extract('year', models.TimeCheck.check_in) == year_searching,
+                                extract('month', models.TimeCheck.check_in) == month_searching).all()
+                        return all_check_status
+                    else:
+                        return f"Không có quyền xem các yêu cầu của {user_search}"
                 except:
                     # Lịch sử chấm công từ trước đến giờ
                     all_check_status = db.query(models.TimeCheck).filter(models.TimeCheck.username == username).all()
@@ -596,3 +606,42 @@ async def delete_request(token: str, type_request: str = Form(), choice_stt: int
     
 
 # Xem lịch sử yêu cầu
+@app.get("/request")
+async def show_all_request(token: str, search_user: str = Form(), db: Session = Depends(models.get_db)):
+    if token != "":
+        try:
+            decodeJSON = jwt.decode(token, "secret", algorithms=["HS256"])
+            username = decodeJSON["username"]
+            user = get_user(db, username)
+
+            if user.role == 0:
+                if search_user == username:
+                    search_request_user = db.query(models.Requirement).filter(models.Requirement.username == username, models.Requirement.deleted_flag == False).all()
+                    return search_request_user
+                else:
+                    return f"Không có quyền xem lịch sử của {search_user}"
+                
+            elif user.role == 1:
+                
+                if search_user == username:
+                    search_request_user = db.query(models.Requirement).filter(models.Requirement.username == username, models.Requirement.deleted_flag == False).all()
+                    return search_request_user    
+                else:
+                    user_searching = get_user(db, search_user)
+
+                    if user_searching.role != 0:
+                        return f"Không có quyền xem lịch sử yêu cầu của {search_user}"
+                    else:
+                        search_request_user = db.query(models.Requirement).outerjoin(models.User).filter(
+                            models.Requirement.username == search_user, 
+                            models.Requirement.deleted_flag == False,
+                            models.User.manager_by == username).all()
+                        return search_request_user
+            else:
+                search_request_user = db.query(models.Requirement).filter(models.Requirement.username == search_request_user, models.Requirement.deleted_flag == False).all()
+                return search_request_user
+
+        except:
+            return "Đăng nhập bị sai"
+    else:
+        return "Chưa đăng nhập tài khoản"
