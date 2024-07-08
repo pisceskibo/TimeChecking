@@ -159,7 +159,7 @@ async def delete_account(token: str, username_again: str = Form(), db: Session =
 
 
 # Bật/Tắt thông báo
-@app.post("/users/announcement")
+@app.put("/users/announcement")
 async def get_announcement(token: str, get_announce: bool = Form(), db: Session = Depends(models.get_db)):
     if token != "":
         try:
@@ -501,7 +501,7 @@ async def edit_type(token: str, id_type: str = Form(), name_type: str = Form(), 
 
 
 # Xóa thể loại yêu cầu
-app.delete("/types/type_delete")
+@app.delete("/types/type_delete")
 async def delete_type(token: str, id_type: str = Form(), db: Session = Depends(models.get_db)):
     if token != "":
         try:
@@ -595,7 +595,7 @@ async def delete_request(token: str, type_request: str = Form(), choice_stt: int
                     db.commit()
                     db.refresh(this_request)
 
-                    return f"{username} đã xóa yêu cầu {this_request}"
+                    return f"{username} đã xóa yêu cầu {this_request.type_requirement}"
                 except:
                     return "Không có yêu cầu mà bạn chọn"
             else:
@@ -624,7 +624,6 @@ async def show_all_request(token: str, search_user: str = Form(), db: Session = 
                     return f"Không có quyền xem lịch sử của {search_user}"
                 
             elif user.role == 1:
-                
                 if search_user == username:
                     search_request_user = db.query(models.Requirement).filter(models.Requirement.username == username, models.Requirement.deleted_flag == False).all()
                     return search_request_user    
