@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import models
 from passlib.context import CryptContext
 import jwt
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from sqlalchemy import extract
 
 
@@ -530,9 +530,12 @@ async def delete_type(token: str, id_type: str = Form(), db: Session = Depends(m
 
 
 ## 5. DANH SÁCH CÁC YÊU CẦU
+"""
+hh:mm:ss - dd/mm/yyyy
+"""
 # Tạo yêu cầu
 @app.post("/users/create_request")
-async def create_request(token: str, type_request: str = Form(), note: str = Form(), db: Session = Depends(models.get_db)):
+async def create_request(token: str, type_request: str = Form(), time_request_start: str = Form(), time_request_end: str = Form(), note: str = Form(), db: Session = Depends(models.get_db)):
     if token != "":
         try:
             decodeJSON = jwt.decode(token, "secret", algorithms=["HS256"])
@@ -555,15 +558,37 @@ async def create_request(token: str, type_request: str = Form(), note: str = For
                 else:
                     get_stt = 0
 
-                new_request = models.Requirement(username=username, type_requirement=type_request, 
-                                                 inserted_at=insert_at, deleted_at=None, deleted_flag=False, 
-                                                 note_requirement=note, stt_this_type=get_stt+1)
+                try:
+                    # Định dạng chuỗi
+                    format_str = "%H:%M:%S - %d/%m/%Y"
 
-                db.add(new_request)
-                db.commit()
-                db.refresh(new_request)
+                    # Logic tách chuỗi thành datetime
+                    time_request_start = time_request_start.strip()     # Xóa khoảng trắng dư thừa 2 phía
+                    datetime_obj_start = datetime.strptime(time_request_start, format_str)
 
-                return f"{username} đã tạo thành công yêu cầu {new_request.type_requirement}"
+                    # Logic tách chuỗi thành datetime
+                    time_request_end = time_request_end.strip()     # Xóa khoảng trắng dư thừa 2 phía
+                    datetime_obj_end = datetime.strptime(time_request_end, format_str)
+                    
+                    time_difference = datetime_obj_end - datetime_obj_start
+                    
+                    if time_difference < timedelta(0):
+                        return "Thời gian bắt đầu lớn hơn thời gian kết thúc"
+                    else:
+                        new_request = models.Requirement(username=username, type_requirement=type_request, 
+                                                    inserted_at=insert_at, deleted_at=None, deleted_flag=False, note_requirement=note,
+                                                    time_requirement_start=datetime_obj_start, time_requirement_end=datetime_obj_end,
+                                                    stt_this_type=get_stt+1)
+                        
+                        db.add(new_request)
+                        db.commit()
+                        db.refresh(new_request)
+
+                        return f"{username} đã tạo thành công yêu cầu {new_request.type_requirement}"
+                    
+                except:
+                    return "Định dạng thời gian yêu cầu không hợp lệ"
+
             else:
                 return "Không có loại yêu cầu này"
         except:

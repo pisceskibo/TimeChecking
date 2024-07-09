@@ -46,6 +46,8 @@ class Requirement(Base):
     deleted_at = Column(DateTime, index=True)
     deleted_flag = Column(Boolean, index=True, comment="Xóa yêu cầu")
     note_requirement = Column(String(100), index=True, comment="Ghi chú cho yêu cầu")
+    time_requirement_start = Column(DateTime, index=True, comment="Thời gian yêu cầu bắt đầu")
+    time_requirement_end = Column(DateTime, index=True, comment="Thời gian yêu cầu kết thúc")
     stt_this_type = Column(Integer, index=True, comment="Số thứ tự cho loại yêu cầu này")
 
     # Relationship to user
