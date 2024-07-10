@@ -49,6 +49,7 @@ class Requirement(Base):
     time_requirement_start = Column(DateTime, index=True, comment="Thời gian yêu cầu bắt đầu")
     time_requirement_end = Column(DateTime, index=True, comment="Thời gian yêu cầu kết thúc")
     stt_this_type = Column(Integer, index=True, comment="Số thứ tự cho loại yêu cầu này")
+    browser_manager = Column(String(10), index=True, comment="Người duyệt yêu cầu")
 
     # Relationship to user
     user = relationship("User", back_populates="requirements")
