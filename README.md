@@ -68,7 +68,7 @@
 + Token: username, password
 ---
 
-### 4. Tạo List các yêu cầu;
+### 4. Tạo List các yêu cầu:
 | Column                | Type      | Note                         | Status       |
 |-----------------------|-----------|------------------------------|--------------|
 | `id`                  | Integer   | Số thứ tự                    | Primary Key  |
