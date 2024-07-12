@@ -32,7 +32,7 @@
 ### 2. Model TimeCheck:
 | Column               | Type     | Note                | Status         |
 |----------------------|----------|---------------------|----------------|
-| `id`                 | Integer  | Số thứ tự           |                |
+| `id`                 | Integer  | Số thứ tự           | Primary Key    |
 | `username`           | String   | Mã nhân viên        | Foreign Key    |
 | `check_announcement` | Boolean  | Bật/Tắt thông báo   |                |
 | `checkin_time`       | Date     | Chấm công lúc đến   |                |
